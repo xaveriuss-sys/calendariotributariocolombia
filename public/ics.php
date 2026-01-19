@@ -37,5 +37,6 @@ header('Content-Type: text/calendar; charset=utf-8');
 header('Content-Disposition: ' . $disposition . '; filename="' . $file . '"');
 header('Content-Length: ' . filesize($filepath));
 header('Cache-Control: public, max-age=3600');
+header('Access-Control-Allow-Origin: *'); // Permitir acceso desde Google
 
 readfile($filepath);
