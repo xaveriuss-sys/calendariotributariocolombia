@@ -33,10 +33,6 @@ $downloadUrl = $icsUrl . '?dl=1';
 // URL con protocolo webcal (para apps de calendario nativas)
 $webcalUrl = str_replace(['https://', 'http://'], 'webcal://', $icsUrl);
 
-// URL para agregar a Google Calendar (One-Click)
-// Nota: Requiere que $icsUrl sea pública
-$googleCalendarUrl = "https://calendar.google.com/calendar/r?cid=" . urlencode($icsUrl);
-
 // Limpiar sesión
 unset($_SESSION['calendar_result']);
 ?>
@@ -311,9 +307,9 @@ unset($_SESSION['calendar_result']);
 
                         <div class="divider"></div>
 
-                        <!-- Google Calendar (Directo) -->
+                        <!-- Google Calendar (Descarga Directa) -->
                         <div class="calendar-btn-group" style="margin-bottom: 12px;">
-                            <a href="<?php echo htmlspecialchars($googleCalendarUrl); ?>" target="_blank" class="calendar-btn" style="margin-bottom: 0;">
+                            <a href="<?php echo htmlspecialchars($downloadUrl); ?>" class="calendar-btn" style="margin-bottom: 0;">
                                 <div class="calendar-btn-icon google">
                                     <svg viewBox="0 0 24 24" width="32" height="32">
                                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -324,13 +320,13 @@ unset($_SESSION['calendar_result']);
                                 </div>
                                 <div class="calendar-btn-content">
                                     <div class="calendar-btn-title">Google Calendar</div>
-                                    <div class="calendar-btn-desc">Click para agregar automáticamente</div>
+                                    <div class="calendar-btn-desc">Descargar e Importar (Recomendado)</div>
                                 </div>
-                                <span class="material-icons arrow">open_in_new</span>
+                                <span class="material-icons arrow">download</span>
                             </a>
                             <div style="text-align: right; margin-top: 4px;">
-                                <button onclick="showGoogleInstructions()" style="background: none; border: none; font-size: 11px; color: var(--text-secondary); text-decoration: underline; cursor: pointer;">
-                                    ¿No funciona? Ver método manual
+                                <button onclick="showGoogleImportTypes()" style="background: none; border: none; font-size: 11px; color: var(--text-secondary); text-decoration: underline; cursor: pointer;">
+                                    ¿Cómo importar este archivo?
                                 </button>
                             </div>
                         </div>
@@ -340,30 +336,34 @@ unset($_SESSION['calendar_result']);
     <script>
         const icsUrl = <?php echo json_encode($icsUrl); ?>;
 
-        function showGoogleInstructions() {
+        function showGoogleImportTypes() {
             Swal.fire({
-                title: 'Método Manual Google Calendar',
+                title: 'Importar en Google Calendar',
                 html: `
                     <div style="text-align: left; font-size: 13px;">
-                        <div style="margin-bottom: 10px; padding: 8px; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; color: #991b1b; font-size: 11px;">
-                             Si el botón principal falla, es probable que Google no pueda acceder a su servidor (ej: Localhost). Siga estos pasos:
+                        <p style="margin-bottom: 12px; color: #64748b;">
+                            Para asegurar que las <strong>alarmas y recordatorios funcionen</strong>, Google requiere que importes el archivo directamente:
+                        </p>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <strong style="color: #0ea5e9;">opción A: Desde el Celular (Más fácil)</strong>
+                            <p style="margin: 4px 0;">Simplemente abre el archivo descargado. Android/iOS te preguntará si quieres "Añadir a todos" al calendario.</p>
                         </div>
-                        <ol style="padding-left: 20px; line-height: 1.8;">
-                            <li>Copie la URL de abajo.</li>
-                            <li>Vaya a Google Calendar > "Otros calendarios" > "+" > "Desde URL".</li>
-                            <li>Pegue la URL.</li>
-                        </ol>
-                        <div style="background: #f1f5f9; border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 11px; word-break: break-all; color: #64748b;">
-                            ${icsUrl}
+
+                        <div>
+                            <strong style="color: #0ea5e9;">Opción B: Desde PC (Web)</strong>
+                            <ol style="padding-left: 20px; line-height: 1.6; margin-top: 4px;">
+                                <li>Ve a <strong>calendar.google.com</strong></li>
+                                <li>Clic en Rueda Dentada ⚙️ > <strong>Configuración</strong></li>
+                                <li>En el menú izquierdo: <strong>"Importar y exportar"</strong></li>
+                                <li>Selecciona el archivo descargado y clic en Importar.</li>
+                            </ol>
                         </div>
-                        <button onclick="copyUrl()" style="background: #0ea5e9; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; font-size: 12px;">
-                            <span style="margin-right: 4px;">📋</span> Copiar URL
-                        </button>
                     </div>
                 `,
                 showConfirmButton: true,
-                confirmButtonText: 'Cerrar',
-                confirmButtonColor: '#64748b',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#0ea5e9',
                 width: 500
             });
         }

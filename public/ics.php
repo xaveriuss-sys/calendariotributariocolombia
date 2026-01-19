@@ -42,14 +42,12 @@ if (filemtime($filepath) < time() - 7200) {
     die('El archivo ha expirado');
 }
 
-// Servir el archivo
-$disposition = isset($_GET['dl']) ? 'attachment' : 'inline';
+// Servir el archivo para descarga directa (One-Time Import)
 header('Content-Type: text/calendar; charset=utf-8');
-header('Content-Disposition: ' . $disposition . '; filename="' . $file . '"');
+header('Content-Disposition: attachment; filename="' . $file . '"');
 header('Content-Description: File Transfer');
 header('Connection: Keep-Alive');
-// header('Content-Length: ' . filesize($filepath)); // Comentado para evitar problemas con compresión gzip
 header('Cache-Control: public, max-age=3600');
-header('Access-Control-Allow-Origin: *'); // Permitir acceso desde Google
+header('Access-Control-Allow-Origin: *');
 
 readfile($filepath);
