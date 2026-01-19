@@ -32,8 +32,9 @@ if (filemtime($filepath) < time() - 7200) {
 }
 
 // Servir el archivo
+$disposition = isset($_GET['dl']) ? 'attachment' : 'inline';
 header('Content-Type: text/calendar; charset=utf-8');
-header('Content-Disposition: inline; filename="' . $file . '"');
+header('Content-Disposition: ' . $disposition . '; filename="' . $file . '"');
 header('Content-Length: ' . filesize($filepath));
 header('Cache-Control: public, max-age=3600');
 

@@ -21,8 +21,8 @@ $icsUrl = $result['ics_url'];
 $icsFilename = $result['ics_filename'];
 $ciudad = $result['ciudad'];
 
-// URL de descarga usando ics.php
-$downloadUrl = 'ics.php?file=' . urlencode($icsFilename);
+// URL de descarga (usando misma URL estática pero forzando descarga)
+$downloadUrl = $icsUrl . '?dl=1';
 
 // URL con protocolo webcal (para apps de calendario nativas)
 $webcalUrl = str_replace(['https://', 'http://'], 'webcal://', $icsUrl);

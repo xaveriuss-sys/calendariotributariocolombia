@@ -385,11 +385,12 @@ if ($action === 'download') {
     // Guardar ICS y mostrar página de resultado
     $icsFilename = saveICSFile($ics, $nit);
 
-    // Construir URL completa usando ics.php
+    // Construir URL "estática" usando mod_rewrite
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
     $basePath = dirname($_SERVER['REQUEST_URI']);
-    $icsUrl = $protocol . '://' . $host . rtrim($basePath, '/') . '/ics.php?file=' . urlencode($icsFilename);
+    // Quitamos la parte final si es /public para limpieza, aunque dirname lo maneja
+    $icsUrl = $protocol . '://' . $host . rtrim($basePath, '/') . '/calendarios/' . $icsFilename;
 
     // Guardar datos en sesión para la página de resultado
     session_start();
