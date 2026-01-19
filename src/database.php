@@ -86,7 +86,8 @@ function runDatabaseSetup($pdo)
         $statements = array_filter(
             array_map('trim', explode(';', $sql)),
             function ($s) {
-                return !empty($s); }
+                return !empty($s);
+            }
         );
 
         foreach ($statements as $statement) {
@@ -268,13 +269,6 @@ INSERT INTO tax_deadlines_2026 (rule_id, ultimo_digito_nit, periodo, fecha_venci
 (10, '*', '2025', '2026-02-14', 'Consignación de cesantías a fondos'),
 (11, '*', '2026', '2026-06-30', 'Prima de servicios - Primer semestre'),
 (12, '*', '2026', '2026-07-15', 'Implementación jornada máxima de 46 horas semanales'),
-(13, '*', '2026', '2026-12-20', 'Prima de servicios - Segundo semestre');
-
--- Crear índices
-CREATE INDEX IF NOT EXISTS idx_deadlines_rule ON tax_deadlines_2026(rule_id);
-CREATE INDEX IF NOT EXISTS idx_deadlines_digito ON tax_deadlines_2026(ultimo_digito_nit);
-CREATE INDEX IF NOT EXISTS idx_deadlines_fecha ON tax_deadlines_2026(fecha_vencimiento);
-CREATE INDEX IF NOT EXISTS idx_rules_codigo ON tax_rules(impuesto_codigo);
-CREATE INDEX IF NOT EXISTS idx_rules_ciudad ON tax_rules(ciudad)
+(13, '*', '2026', '2026-12-20', 'Prima de servicios - Segundo semestre')
 SQL;
 }
