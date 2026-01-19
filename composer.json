@@ -1,0 +1,14 @@
+{
+    "name": "dataeficiencia/calendario-tributario",
+    "description": "Calendario Tributario Colombia 2026 - Generador de archivos ICS",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.0"
+    },
+    "config": {
+        "platform": {
+            "php": "8.0"
+        }
+    }
+}
