@@ -1,0 +1,317 @@
+<?php
+/**
+ * Calendario Tributario Colombia 2026
+ * Punto de Entrada Principal
+ */
+
+require_once dirname(__DIR__) . '/src/config.php';
+
+// Verificar si la aplicación está instalada
+if (!isInstalled()) {
+    header('Location: install.php');
+    exit;
+}
+?>
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Genera tu calendario tributario Colombia 2026 personalizado. Descarga un archivo .ics compatible con Outlook y Google Calendar.">
+    <title>Calendario Tributario Colombia 2026 | Dataeficiencia</title>
+
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <div class="app-wrapper">
+        <!-- Header -->
+        <header class="top-header">
+            <div class="header-brand">
+                <span class="material-icons" style="color: #0ea5e9;">event_available</span>
+                <h1>Calendario Tributario <span>by Dataeficiencia</span></h1>
+            </div>
+            <div class="header-info">
+                <span class="material-icons">calendar_month</span>
+                Año Fiscal 2026
+            </div>
+        </header>
+
+        <!-- Contenido Principal -->
+        <main class="main-content">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="material-icons">business</span>
+                        <h2>Datos de la Empresa</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- Info Box -->
+                        <div class="info-box">
+                            <span class="material-icons">info</span>
+                            <p>
+                                Complete los datos de su empresa para generar un calendario tributario
+                                personalizado con todas sus obligaciones fiscales 2026. El archivo .ics
+                                es compatible con Outlook, Google Calendar y otros gestores de calendario.
+                            </p>
+                        </div>
+
+                        <!-- Formulario -->
+                        <form id="taxForm" action="generator.php" method="POST">
+                            <!-- NIT -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    NIT de la Empresa <span class="required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <div class="input-with-icon" style="flex: 1; position: relative;">
+                                        <span class="material-icons">badge</span>
+                                        <input type="text" class="form-input" id="nit" name="nit"
+                                            placeholder="Ej: 900123456" maxlength="10" required>
+                                        <span class="validation-icon" id="nitValidation"></span>
+                                    </div>
+                                    <span class="input-separator">—</span>
+                                    <input type="text" class="form-input" id="nit_dv" name="nit_dv" placeholder="DV"
+                                        maxlength="1" required>
+                                </div>
+                                <p class="form-hint">Ingrese el NIT sin puntos ni guiones, seguido del dígito de
+                                    verificación</p>
+                                <p class="error-message" id="nitError">El dígito de verificación no coincide</p>
+                            </div>
+
+                            <!-- Ciudad -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Ciudad Sede Principal <span class="required">*</span>
+                                </label>
+                                <select class="form-select" id="ciudad" name="ciudad" required>
+                                    <option value="">Seleccione una ciudad</option>
+                                    <option value="Bogotá">Bogotá D.C.</option>
+                                    <option value="Medellín">Medellín</option>
+                                    <option value="Cali">Cali</option>
+                                    <option value="Otra">Otra ciudad</option>
+                                </select>
+                                <p class="form-hint">Seleccione la ciudad para incluir obligaciones de ICA municipal</p>
+                            </div>
+
+                            <!-- Ingresos Brutos 2025 -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Ingresos Brutos 2025 (COP) <span class="required">*</span>
+                                </label>
+                                <div class="currency-input-wrapper">
+                                    <input type="text" class="form-input" id="ingresos" name="ingresos"
+                                        placeholder="Ej: 5,000,000,000" required>
+                                </div>
+                                <p class="form-hint">
+                                    Si supera ~$4.581.000.000 (92.000 UVT), aplicará IVA bimestral;
+                                    de lo contrario, cuatrimestral
+                                </p>
+                            </div>
+
+                            <!-- Impuesto a Cargo ICA Bogotá (Condicional) -->
+                            <div class="form-group conditional-field" id="icaBogotaField">
+                                <label class="form-label">
+                                    Impuesto ICA Cargo 2025 (COP)
+                                </label>
+                                <div class="currency-input-wrapper">
+                                    <input type="text" class="form-input" id="ica_cargo" name="ica_cargo"
+                                        placeholder="Ej: 25,000,000">
+                                </div>
+                                <p class="form-hint">
+                                    Solo para Bogotá. Si supera ~$19.461.000 (391 UVT), aplicará ICA bimestral;
+                                    de lo contrario, declaración anual
+                                </p>
+                            </div>
+
+                            <!-- Botón Submit -->
+                            <div class="form-group" style="margin-top: 24px;">
+                                <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitBtn">
+                                    <span class="material-icons">download</span>
+                                    Generar Calendario .ICS
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>
+                &copy; 2026 <a href="#">Dataeficiencia</a>.
+                Calendario informativo. Consulte con su contador para confirmación de fechas.
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        /**
+         * Calendario Tributario Colombia 2026
+         * JavaScript - Validaciones del Formulario
+         */
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('taxForm');
+            const nitInput = document.getElementById('nit');
+            const dvInput = document.getElementById('nit_dv');
+            const ciudadSelect = document.getElementById('ciudad');
+            const ingresosInput = document.getElementById('ingresos');
+            const icaCargoInput = document.getElementById('ica_cargo');
+            const icaBogotaField = document.getElementById('icaBogotaField');
+            const nitValidation = document.getElementById('nitValidation');
+            const nitError = document.getElementById('nitError');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // =====================================
+            // Validación del Dígito de Verificación
+            // =====================================
+            function calcularDV(nit) {
+                if (!nit || nit.length < 5) return null;
+
+                const pesos = [3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71];
+                const nitInvertido = nit.split('').reverse();
+                let suma = 0;
+
+                for (let i = 0; i < nitInvertido.length; i++) {
+                    suma += parseInt(nitInvertido[i]) * pesos[i];
+                }
+
+                const residuo = suma % 11;
+                return residuo > 1 ? 11 - residuo : residuo;
+            }
+
+            function validarNIT() {
+                const nit = nitInput.value.replace(/[^0-9]/g, '');
+                const dv = dvInput.value.replace(/[^0-9]/g, '');
+
+                nitValidation.textContent = '';
+                nitValidation.className = 'validation-icon';
+                nitInput.classList.remove('error');
+                nitError.style.display = 'none';
+
+                if (nit.length >= 5 && dv.length === 1) {
+                    const dvCalculado = calcularDV(nit);
+
+                    if (parseInt(dv) === dvCalculado) {
+                        nitValidation.textContent = 'check_circle';
+                        nitValidation.classList.add('valid');
+                        return true;
+                    } else {
+                        nitValidation.textContent = 'error';
+                        nitValidation.classList.add('invalid');
+                        nitInput.classList.add('error');
+                        nitError.style.display = 'block';
+                        return false;
+                    }
+                }
+
+                return nit.length >= 5;
+            }
+
+            nitInput.addEventListener('input', function (e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                validarNIT();
+            });
+
+            dvInput.addEventListener('input', function (e) {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 1);
+                validarNIT();
+            });
+
+            // =====================================
+            // Mostrar/Ocultar Campo ICA Bogotá
+            // =====================================
+            ciudadSelect.addEventListener('change', function () {
+                if (this.value === 'Bogotá') {
+                    icaBogotaField.classList.add('visible');
+                } else {
+                    icaBogotaField.classList.remove('visible');
+                    icaCargoInput.value = '';
+                }
+            });
+
+            // =====================================
+            // Formateo de Moneda
+            // =====================================
+            function formatCurrency(value) {
+                const number = value.replace(/[^0-9]/g, '');
+                if (!number) return '';
+                return new Intl.NumberFormat('es-CO').format(parseInt(number));
+            }
+
+            function parseCurrency(value) {
+                return value.replace(/[^0-9]/g, '');
+            }
+
+            ingresosInput.addEventListener('input', function () {
+                const cursorPos = this.selectionStart;
+                const oldLength = this.value.length;
+                this.value = formatCurrency(this.value);
+                const newLength = this.value.length;
+                this.setSelectionRange(cursorPos + (newLength - oldLength), cursorPos + (newLength - oldLength));
+            });
+
+            icaCargoInput.addEventListener('input', function () {
+                const cursorPos = this.selectionStart;
+                const oldLength = this.value.length;
+                this.value = formatCurrency(this.value);
+                const newLength = this.value.length;
+                this.setSelectionRange(cursorPos + (newLength - oldLength), cursorPos + (newLength - oldLength));
+            });
+
+            // =====================================
+            // Validación del Formulario
+            // =====================================
+            form.addEventListener('submit', function (e) {
+                if (!validarNIT()) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'NIT Inválido',
+                        text: 'El dígito de verificación no coincide con el NIT ingresado.',
+                        confirmButtonColor: '#0ea5e9'
+                    });
+                    return;
+                }
+
+                const nit = nitInput.value.replace(/[^0-9]/g, '');
+                const ciudad = ciudadSelect.value;
+                const ingresos = parseCurrency(ingresosInput.value);
+
+                if (!nit || !ciudad || !ingresos) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campos Requeridos',
+                        text: 'Por favor complete todos los campos obligatorios.',
+                        confirmButtonColor: '#0ea5e9'
+                    });
+                    return;
+                }
+
+                ingresosInput.value = ingresos;
+                if (icaCargoInput.value) {
+                    icaCargoInput.value = parseCurrency(icaCargoInput.value);
+                }
+
+                submitBtn.classList.add('loading');
+                submitBtn.innerHTML = '<span class="material-icons">sync</span> Generando...';
+                submitBtn.disabled = true;
+            });
+        });
+    </script>
+</body>
+
+</html>

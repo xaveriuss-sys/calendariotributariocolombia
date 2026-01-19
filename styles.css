@@ -1,0 +1,500 @@
+/**
+ * Calendario Tributario Colombia 2026
+ * Estilos CSS - Design System Dataeficiencia
+ */
+
+/* ========================================
+   VARIABLES CSS
+   ======================================== */
+:root {
+    /* Colores Base */
+    --header-bg: #1e293b;
+    --header-text: #94a3b8;
+    --header-text-active: #ffffff;
+    --bg-main: #f1f5f9;
+    --bg-card: #ffffff;
+    
+    /* Colores de Texto */
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    
+    /* Colores de Acento */
+    --accent-primary: #0ea5e9;
+    --accent-hover: #0284c7;
+    --accent-light: #e0f2fe;
+    
+    /* Colores Semánticos */
+    --success: #22c55e;
+    --success-light: #dcfce7;
+    --warning: #f59e0b;
+    --warning-light: #fef3c7;
+    --danger: #ef4444;
+    --danger-light: #fee2e2;
+    
+    /* Bordes */
+    --border-color: #e2e8f0;
+    
+    /* Sombras */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 2px 4px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.3);
+    
+    /* Transiciones */
+    --transition: 150ms ease;
+    
+    /* Bordes Redondeados */
+    --radius-sm: 2px;
+    --radius-md: 4px;
+}
+
+/* ========================================
+   RESET Y BASE
+   ======================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-primary);
+    background: var(--bg-main);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
+
+/* ========================================
+   LAYOUT PRINCIPAL
+   ======================================== */
+.app-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+    padding: 24px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+.top-header {
+    height: 52px;
+    background: var(--header-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-brand img {
+    width: 28px;
+    height: 28px;
+}
+
+.header-brand h1 {
+    color: var(--header-text-active);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+
+.header-brand span {
+    color: var(--header-text);
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.header-info {
+    color: var(--header-text);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.header-info .material-icons {
+    font-size: 16px;
+}
+
+/* ========================================
+   CARDS
+   ======================================== */
+.card {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-header .material-icons {
+    font-size: 20px;
+    color: var(--accent-primary);
+}
+
+.card-header h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* ========================================
+   FORMULARIOS
+   ======================================== */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.form-label .required {
+    color: var(--danger);
+    margin-left: 2px;
+}
+
+.form-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.form-input,
+.form-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: inherit;
+    background: white;
+    color: var(--text-primary);
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.1);
+}
+
+.form-input::placeholder {
+    color: var(--text-muted);
+}
+
+.form-input.error {
+    border-color: var(--danger);
+}
+
+.error-message {
+    color: var(--danger);
+    font-size: 11px;
+    margin-top: 4px;
+    display: none;
+}
+
+.form-input.error + .error-message {
+    display: block;
+}
+
+/* Input con ícono */
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon .material-icons {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: var(--text-muted);
+}
+
+.input-with-icon .form-input {
+    padding-left: 40px;
+}
+
+/* Input group (NIT + DV) */
+.input-group {
+    display: flex;
+    gap: 8px;
+}
+
+.input-group .form-input:first-child {
+    flex: 1;
+}
+
+.input-group .form-input:last-child {
+    width: 60px;
+    text-align: center;
+}
+
+/* Separator */
+.input-separator {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Conditional field */
+.conditional-field {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.conditional-field.visible {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================
+   BOTONES
+   ======================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.btn-primary {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+}
+
+.btn-primary:disabled {
+    background: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.btn-lg {
+    padding: 14px 28px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.btn .material-icons {
+    font-size: 18px;
+}
+
+/* ========================================
+   INFO BOX
+   ======================================== */
+.info-box {
+    background: var(--accent-light);
+    border: 1px solid var(--accent-primary);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.info-box .material-icons {
+    font-size: 20px;
+    color: var(--accent-primary);
+    flex-shrink: 0;
+}
+
+.info-box p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.app-footer {
+    background: var(--header-bg);
+    padding: 16px 20px;
+    text-align: center;
+}
+
+.app-footer p {
+    color: var(--header-text);
+    font-size: 11px;
+}
+
+.app-footer a {
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+
+.app-footer a:hover {
+    text-decoration: underline;
+}
+
+/* ========================================
+   SCROLLBARS
+   ======================================== */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ========================================
+   LOADING STATE
+   ======================================== */
+.btn.loading .material-icons {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 640px) {
+    .main-content {
+        padding: 16px 12px;
+    }
+    
+    .card-body {
+        padding: 16px;
+    }
+    
+    .header-brand span {
+        display: none;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group .form-input:last-child {
+        width: 100%;
+    }
+    
+    .input-separator {
+        display: none;
+    }
+}
+
+/* ========================================
+   VALIDATION STATES
+   ======================================== */
+.validation-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+}
+
+.validation-icon.valid {
+    color: var(--success);
+}
+
+.validation-icon.invalid {
+    color: var(--danger);
+}
+
+/* ========================================
+   CURRENCY INPUT
+   ======================================== */
+.currency-input-wrapper {
+    position: relative;
+}
+
+.currency-input-wrapper::before {
+    content: '$';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.currency-input-wrapper .form-input {
+    padding-left: 28px;
+}
