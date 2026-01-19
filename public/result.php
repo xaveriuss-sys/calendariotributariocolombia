@@ -27,6 +27,10 @@ $downloadUrl = $icsUrl . '?dl=1';
 // URL con protocolo webcal (para apps de calendario nativas)
 $webcalUrl = str_replace(['https://', 'http://'], 'webcal://', $icsUrl);
 
+// URL para agregar a Google Calendar (One-Click)
+// Nota: Requiere que $icsUrl sea pública
+$googleCalendarUrl = "https://calendar.google.com/calendar/r?cid=" . urlencode($icsUrl);
+
 // Limpiar sesión
 unset($_SESSION['calendar_result']);
 ?>
@@ -301,12 +305,6 @@ unset($_SESSION['calendar_result']);
 
                         <div class="divider"></div>
 
-// URL para agregar a Google Calendar (One-Click)
-// Nota: Requiere que $icsUrl sea pública
-$googleCalendarUrl = "https://calendar.google.com/calendar/r?cid=" . urlencode($icsUrl);
-
-// ... (HTML anterior) ...
-
                         <!-- Google Calendar (Directo) -->
                         <div class="calendar-btn-group" style="margin-bottom: 12px;">
                             <a href="<?php echo htmlspecialchars($googleCalendarUrl); ?>" target="_blank" class="calendar-btn" style="margin-bottom: 0;">
@@ -331,7 +329,7 @@ $googleCalendarUrl = "https://calendar.google.com/calendar/r?cid=" . urlencode($
                             </div>
                         </div>
 
-// ... (HTML posterior) ...
+                        <!-- Outlook -->
 
     <script>
         const icsUrl = <?php echo json_encode($icsUrl); ?>;
