@@ -82,7 +82,7 @@ function getDigitGroup($digit)
 }
 
 /**
- * Guardar ICS temporalmente y devolver URL
+ * Guardar ICS temporalmente y devolver nombre del archivo
  */
 function saveICSFile($ics, $nit)
 {
@@ -97,8 +97,8 @@ function saveICSFile($ics, $nit)
 
     file_put_contents($filepath, $ics);
 
-    // Devolver la URL relativa
-    return 'storage/ics/' . $filename;
+    // Devolver solo el nombre del archivo
+    return $filename;
 }
 
 /**
@@ -383,13 +383,13 @@ if ($action === 'download') {
 
 } elseif ($action === 'google' || $action === 'outlook') {
     // Guardar ICS y mostrar página de resultado
-    $icsPath = saveICSFile($ics, $nit);
+    $icsFilename = saveICSFile($ics, $nit);
 
-    // Construir URL completa
+    // Construir URL completa usando ics.php
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
-    $baseUrl = $protocol . '://' . $host . dirname($_SERVER['REQUEST_URI']);
-    $icsUrl = rtrim($baseUrl, '/') . '/' . $icsPath;
+    $basePath = dirname($_SERVER['REQUEST_URI']);
+    $icsUrl = $protocol . '://' . $host . rtrim($basePath, '/') . '/ics.php?file=' . urlencode($icsFilename);
 
     // Guardar datos en sesión para la página de resultado
     session_start();
@@ -397,7 +397,7 @@ if ($action === 'download') {
         'nit' => $nit,
         'eventos_count' => count($eventos),
         'ics_url' => $icsUrl,
-        'ics_file' => $icsPath,
+        'ics_filename' => $icsFilename,
         'action' => $action,
         'ciudad' => $ciudad
     ];

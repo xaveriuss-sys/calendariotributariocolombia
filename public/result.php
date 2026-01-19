@@ -18,9 +18,12 @@ $result = $_SESSION['calendar_result'];
 $nit = $result['nit'];
 $eventosCount = $result['eventos_count'];
 $icsUrl = $result['ics_url'];
-$icsFile = $result['ics_file'];
+$icsFilename = $result['ics_filename'];
 $action = $result['action'];
 $ciudad = $result['ciudad'];
+
+// URL de descarga usando ics.php
+$downloadUrl = 'ics.php?file=' . urlencode($icsFilename);
 
 // Limpiar sesión
 unset($_SESSION['calendar_result']);
@@ -293,7 +296,7 @@ $outlookWebUrl = 'https://outlook.live.com/calendar/0/addfromweb?url=' . urlenco
                         <div class="divider"></div>
 
                         <!-- Descargar ICS -->
-                        <a href="<?php echo htmlspecialchars($icsFile); ?>" download class="calendar-btn">
+                        <a href="<?php echo htmlspecialchars($downloadUrl); ?>" download class="calendar-btn">
                             <div class="calendar-btn-icon download">
                                 <span class="material-icons">download</span>
                             </div>
