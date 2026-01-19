@@ -35,7 +35,9 @@ if (filemtime($filepath) < time() - 7200) {
 $disposition = isset($_GET['dl']) ? 'attachment' : 'inline';
 header('Content-Type: text/calendar; charset=utf-8');
 header('Content-Disposition: ' . $disposition . '; filename="' . $file . '"');
-header('Content-Length: ' . filesize($filepath));
+header('Content-Description: File Transfer');
+header('Connection: Keep-Alive');
+// header('Content-Length: ' . filesize($filepath)); // Comentado para evitar problemas con compresión gzip
 header('Cache-Control: public, max-age=3600');
 header('Access-Control-Allow-Origin: *'); // Permitir acceso desde Google
 

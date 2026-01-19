@@ -385,7 +385,15 @@ if ($action === 'download') {
     // Guardar ICS y mostrar página de resultado
     $icsFilename = saveICSFile($ics, $nit);
 
-    // URL directa a ics.php (Compatible con todos los servidores)
+    // URL directa a ics.php
+    // Detectar protocolo correctamente (incluyendo proxies como Cloudflare/Nginx)
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+        $protocol = 'https';
+    }
+
+    $host = $_SERVER['HTTP_HOST'];
+    $basePath = dirname($_SERVER['REQUEST_URI']);
     $icsUrl = $protocol . '://' . $host . rtrim($basePath, '/') . '/ics.php?file=' . $icsFilename;
 
     // Guardar datos en sesión para la página de resultado
