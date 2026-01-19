@@ -1,6 +1,9 @@
 # Archivos de configuración con credenciales
 /storage/config.json
 
+# Archivos ICS temporales
+/storage/ics/
+
 # Cache y logs
 *.log
 *.cache

@@ -134,12 +134,18 @@ if (!isInstalled()) {
                                 </p>
                             </div>
 
+                            <!-- Acción oculta -->
+                            <input type="hidden" name="action" id="actionInput" value="google">
+                            
                             <!-- Botón Submit -->
                             <div class="form-group" style="margin-top: 24px;">
                                 <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitBtn">
-                                    <span class="material-icons">download</span>
-                                    Generar Calendario .ICS
+                                    <span class="material-icons">event</span>
+                                    Generar Calendario
                                 </button>
+                                <p class="form-hint" style="text-align: center; margin-top: 8px;">
+                                    Podrá elegir cómo agregar los eventos: Google Calendar, Outlook o descargar .ICS
+                                </p>
                             </div>
                         </form>
                     </div>

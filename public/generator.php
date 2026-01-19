@@ -1,7 +1,7 @@
 <?php
 /**
  * Calendario Tributario Colombia 2026
- * Generador de Archivo ICS
+ * Generador de Archivo ICS y URLs de Calendario
  */
 
 require_once dirname(__DIR__) . '/src/config.php';
@@ -81,6 +81,45 @@ function getDigitGroup($digit)
     return '6-0';
 }
 
+/**
+ * Guardar ICS temporalmente y devolver URL
+ */
+function saveICSFile($ics, $nit)
+{
+    $storageDir = dirname(__DIR__) . '/storage/ics';
+    if (!is_dir($storageDir)) {
+        mkdir($storageDir, 0755, true);
+    }
+
+    // Generar nombre único
+    $filename = 'calendario_' . $nit . '_' . time() . '.ics';
+    $filepath = $storageDir . '/' . $filename;
+
+    file_put_contents($filepath, $ics);
+
+    // Devolver la URL relativa
+    return 'storage/ics/' . $filename;
+}
+
+/**
+ * Limpiar archivos ICS antiguos (más de 1 hora)
+ */
+function cleanOldICSFiles()
+{
+    $storageDir = dirname(__DIR__) . '/storage/ics';
+    if (!is_dir($storageDir))
+        return;
+
+    $files = glob($storageDir . '/*.ics');
+    $oneHourAgo = time() - 3600;
+
+    foreach ($files as $file) {
+        if (filemtime($file) < $oneHourAgo) {
+            unlink($file);
+        }
+    }
+}
+
 // ============================================
 // VALIDACIÓN DE INPUT
 // ============================================
@@ -95,6 +134,7 @@ $nit_dv = preg_replace('/[^0-9]/', '', $_POST['nit_dv'] ?? '');
 $ciudad = trim($_POST['ciudad'] ?? '');
 $ingresos = floatval(preg_replace('/[^0-9]/', '', $_POST['ingresos'] ?? 0));
 $ica_cargo = floatval(preg_replace('/[^0-9]/', '', $_POST['ica_cargo'] ?? 0));
+$action = $_POST['action'] ?? 'download'; // download, google, outlook
 
 if (!validarNIT($nit, $nit_dv)) {
     die('Error: NIT inválido. <a href="index.php">Volver</a>');
@@ -119,6 +159,9 @@ if ($ciudad === 'Bogotá') {
     $icaBogotaCodigo = ($ica_cargo > $umbralICABog) ? 'ICA_BOG_BIM' : 'ICA_BOG_ANUAL';
 }
 
+// Limpiar archivos antiguos
+cleanOldICSFiles();
+
 // ============================================
 // CONSULTAR BASE DE DATOS
 // ============================================
@@ -131,6 +174,7 @@ try {
     }
 
     $eventos = [];
+    $eventosData = []; // Para Google/Outlook URLs
 
     // 1. RENTA PERSONAS JURÍDICAS
     $sql = "SELECT d.fecha_vencimiento, d.descripcion, d.periodo, r.impuesto_nombre
@@ -149,6 +193,11 @@ try {
         $summary = "📋 " . $row['impuesto_nombre'] . " - " . $row['periodo'];
         $desc = $row['descripcion'] . "\\nNIT: {$nit}-{$nit_dv}\\nÚltimo dígito: {$ultimoDigito}\\n\\nRecuerde verificar con su contador.";
         $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'DIAN - Renta');
+        $eventosData[] = [
+            'summary' => $row['impuesto_nombre'] . " - " . $row['periodo'],
+            'date' => $row['fecha_vencimiento'],
+            'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+        ];
     }
 
     // 2. IVA
@@ -169,6 +218,11 @@ try {
         $summary = "💰 IVA {$periodicidadLabel} - " . $row['periodo'];
         $desc = $row['descripcion'] . "\\nPeriodicidad: {$periodicidadLabel}\\nNIT: {$nit}-{$nit_dv}\\n\\nRecuerde verificar con su contador.";
         $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'DIAN - IVA');
+        $eventosData[] = [
+            'summary' => "IVA {$periodicidadLabel} - " . $row['periodo'],
+            'date' => $row['fecha_vencimiento'],
+            'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+        ];
     }
 
     // 3. RETENCIÓN EN LA FUENTE
@@ -188,6 +242,11 @@ try {
         $summary = "🏦 Retención Fuente - " . $row['periodo'];
         $desc = $row['descripcion'] . "\\nNIT: {$nit}-{$nit_dv}\\n\\nRecuerde verificar con su contador.";
         $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'DIAN - Retención');
+        $eventosData[] = [
+            'summary' => "Retención Fuente - " . $row['periodo'],
+            'date' => $row['fecha_vencimiento'],
+            'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+        ];
     }
 
     // 4. ICA MUNICIPAL
@@ -209,6 +268,11 @@ try {
             $summary = "🏛️ ICA Bogotá {$icaLabel} - " . $row['periodo'];
             $desc = $row['descripcion'] . "\\nRégimen: {$icaLabel}\\nNIT: {$nit}-{$nit_dv}\\n\\nRecuerde verificar con su contador.";
             $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'ICA - Bogotá');
+            $eventosData[] = [
+                'summary' => "ICA Bogotá {$icaLabel} - " . $row['periodo'],
+                'date' => $row['fecha_vencimiento'],
+                'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+            ];
         }
 
     } elseif ($ciudad === 'Medellín') {
@@ -226,6 +290,11 @@ try {
             $summary = "🏛️ ICA Medellín - " . $row['periodo'];
             $desc = $row['descripcion'] . "\\nNIT: {$nit}-{$nit_dv}\\n\\nRecuerde verificar con su contador.";
             $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'ICA - Medellín');
+            $eventosData[] = [
+                'summary' => "ICA Medellín - " . $row['periodo'],
+                'date' => $row['fecha_vencimiento'],
+                'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+            ];
         }
 
     } elseif ($ciudad === 'Cali') {
@@ -243,6 +312,11 @@ try {
             $summary = "🏛️ ICA Cali - " . $row['periodo'];
             $desc = $row['descripcion'] . "\\nNIT: {$nit}-{$nit_dv}\\n\\nRecuerde verificar con su contador.";
             $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'ICA - Cali');
+            $eventosData[] = [
+                'summary' => "ICA Cali - " . $row['periodo'],
+                'date' => $row['fecha_vencimiento'],
+                'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+            ];
         }
     }
 
@@ -261,6 +335,11 @@ try {
         $summary = "👥 " . $row['impuesto_nombre'];
         $desc = $row['descripcion'] . "\\nEmpresa: {$nit}-{$nit_dv}\\n\\nObligación laboral importante.";
         $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'Laboral');
+        $eventosData[] = [
+            'summary' => $row['impuesto_nombre'],
+            'date' => $row['fecha_vencimiento'],
+            'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+        ];
     }
 
 } catch (PDOException $e) {
@@ -288,15 +367,41 @@ foreach ($eventos as $evento) {
 $ics .= "END:VCALENDAR\r\n";
 
 // ============================================
-// ENVIAR ARCHIVO
+// PROCESAR SEGÚN ACCIÓN
 // ============================================
 
-header('Content-Type: text/calendar; charset=utf-8');
-header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
-header('Content-Length: ' . strlen($ics));
-header('Cache-Control: no-cache, must-revalidate');
-header('Pragma: no-cache');
-header('Expires: 0');
+if ($action === 'download') {
+    // Descarga directa del archivo
+    header('Content-Type: text/calendar; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
+    header('Content-Length: ' . strlen($ics));
+    header('Cache-Control: no-cache, must-revalidate');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    echo $ics;
+    exit;
 
-echo $ics;
-exit;
+} elseif ($action === 'google' || $action === 'outlook') {
+    // Guardar ICS y mostrar página de resultado
+    $icsPath = saveICSFile($ics, $nit);
+
+    // Construir URL completa
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'];
+    $baseUrl = $protocol . '://' . $host . dirname($_SERVER['REQUEST_URI']);
+    $icsUrl = rtrim($baseUrl, '/') . '/' . $icsPath;
+
+    // Guardar datos en sesión para la página de resultado
+    session_start();
+    $_SESSION['calendar_result'] = [
+        'nit' => $nit,
+        'eventos_count' => count($eventos),
+        'ics_url' => $icsUrl,
+        'ics_file' => $icsPath,
+        'action' => $action,
+        'ciudad' => $ciudad
+    ];
+
+    header('Location: result.php');
+    exit;
+}
