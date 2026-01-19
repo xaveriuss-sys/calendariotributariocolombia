@@ -21,6 +21,12 @@ $icsUrl = $result['ics_url'];
 $icsFilename = $result['ics_filename'];
 $ciudad = $result['ciudad'];
 
+// HOTFIX: Corregir URLs antiguas en sesión (si el usuario no regeneró el calendario)
+if (strpos($icsUrl, '/calendarios/') !== false) {
+    // Convertir de /calendarios/nombre.ics a /ics.php?file=nombre.ics
+    $icsUrl = str_replace('/calendarios/', '/ics.php?file=', $icsUrl);
+}
+
 // URL de descarga (usando misma URL estática pero forzando descarga)
 $downloadUrl = $icsUrl . '?dl=1';
 
