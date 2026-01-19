@@ -78,7 +78,7 @@ if (!isInstalled()) {
                                         <span class="material-icons">badge</span>
                                         <input type="text" class="form-input" id="nit" name="nit"
                                             placeholder="Ej: 900123456" maxlength="10" required>
-                                        <span class="validation-icon" id="nitValidation"></span>
+                                        <span class="material-icons validation-icon" id="nitValidation"></span>
                                     </div>
                                     <span class="input-separator">—</span>
                                     <input type="text" class="form-input" id="nit_dv" name="nit_dv" placeholder="DV"
