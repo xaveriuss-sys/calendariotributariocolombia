@@ -309,7 +309,7 @@ unset($_SESSION['calendar_result']);
 
                         <!-- Google Calendar (Descarga Directa) -->
                         <div class="calendar-btn-group" style="margin-bottom: 12px;">
-                            <a href="<?php echo htmlspecialchars($downloadUrl); ?>" class="calendar-btn"
+                            <a href="<?php echo htmlspecialchars($downloadUrl); ?>" onclick="showGoogleImportTypes()" class="calendar-btn"
                                 style="margin-bottom: 0;">
                                 <div class="calendar-btn-icon google">
                                     <svg viewBox="0 0 24 24" width="32" height="32">
