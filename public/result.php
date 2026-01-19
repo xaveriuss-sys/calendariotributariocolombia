@@ -19,18 +19,16 @@ $nit = $result['nit'];
 $eventosCount = $result['eventos_count'];
 $icsUrl = $result['ics_url'];
 $icsFilename = $result['ics_filename'];
-$action = $result['action'];
 $ciudad = $result['ciudad'];
 
 // URL de descarga usando ics.php
 $downloadUrl = 'ics.php?file=' . urlencode($icsFilename);
 
+// URL con protocolo webcal (para apps de calendario nativas)
+$webcalUrl = str_replace(['https://', 'http://'], 'webcal://', $icsUrl);
+
 // Limpiar sesión
 unset($_SESSION['calendar_result']);
-
-// Construir URLs de calendario
-$googleCalendarUrl = 'https://calendar.google.com/calendar/r?cid=' . urlencode($icsUrl);
-$outlookWebUrl = 'https://outlook.live.com/calendar/0/addfromweb?url=' . urlencode($icsUrl) . '&name=' . urlencode('Calendario Tributario ' . $nit);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -42,6 +40,7 @@ $outlookWebUrl = 'https://outlook.live.com/calendar/0/addfromweb?url=' . urlenco
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .result-container {
             max-width: 600px;
@@ -112,11 +111,6 @@ $outlookWebUrl = 'https://outlook.live.com/calendar/0/addfromweb?url=' . urlenco
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-        }
-
-        .calendar-btn-icon img {
-            width: 32px;
-            height: 32px;
         }
 
         .calendar-btn-icon.google {
@@ -198,6 +192,55 @@ $outlookWebUrl = 'https://outlook.live.com/calendar/0/addfromweb?url=' . urlenco
         .back-link:hover {
             color: var(--accent-primary);
         }
+
+        .url-box {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 10px 12px;
+            margin: 12px 0;
+            font-size: 11px;
+            word-break: break-all;
+            color: var(--text-secondary);
+            font-family: monospace;
+        }
+
+        .copy-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 8px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .copy-btn .material-icons {
+            font-size: 16px;
+        }
+
+        .instructions {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .instructions ol {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 6px;
+        }
     </style>
 </head>
 
@@ -213,37 +256,27 @@ $outlookWebUrl = 'https://outlook.live.com/calendar/0/addfromweb?url=' . urlenco
         <main class="main-content">
             <div class="container result-container">
                 <div class="card" style="overflow: hidden;">
-                    <!-- Success Header -->
                     <div class="success-header">
                         <div class="success-icon">
                             <span class="material-icons">check</span>
                         </div>
                         <h2>¡Calendario Generado!</h2>
-                        <p>
-                            <?php echo $eventosCount; ?> eventos tributarios para 2026
-                        </p>
+                        <p><?php echo $eventosCount; ?> eventos tributarios para 2026</p>
                     </div>
 
                     <div class="calendar-options">
-                        <!-- Resumen -->
                         <div class="summary-box">
                             <div class="summary-row">
                                 <span class="summary-label">NIT:</span>
-                                <span class="summary-value">
-                                    <?php echo htmlspecialchars($nit); ?>
-                                </span>
+                                <span class="summary-value"><?php echo htmlspecialchars($nit); ?></span>
                             </div>
                             <div class="summary-row">
                                 <span class="summary-label">Ciudad:</span>
-                                <span class="summary-value">
-                                    <?php echo htmlspecialchars($ciudad); ?>
-                                </span>
+                                <span class="summary-value"><?php echo htmlspecialchars($ciudad); ?></span>
                             </div>
                             <div class="summary-row">
                                 <span class="summary-label">Eventos:</span>
-                                <span class="summary-value">
-                                    <?php echo $eventosCount; ?> obligaciones
-                                </span>
+                                <span class="summary-value"><?php echo $eventosCount; ?> obligaciones</span>
                             </div>
                         </div>
 
@@ -252,9 +285,24 @@ $outlookWebUrl = 'https://outlook.live.com/calendar/0/addfromweb?url=' . urlenco
                             Seleccione cómo desea agregar los eventos a su calendario:
                         </p>
 
+                        <!-- Descargar ICS (Opción principal) -->
+                        <a href="<?php echo htmlspecialchars($downloadUrl); ?>" download class="calendar-btn"
+                            style="border-color: var(--accent-primary); background: var(--accent-light);">
+                            <div class="calendar-btn-icon download">
+                                <span class="material-icons">download</span>
+                            </div>
+                            <div class="calendar-btn-content">
+                                <div class="calendar-btn-title">Descargar archivo .ICS</div>
+                                <div class="calendar-btn-desc">Recomendado - Compatible con Outlook, Google Calendar,
+                                    Apple</div>
+                            </div>
+                            <span class="material-icons arrow">arrow_forward</span>
+                        </a>
+
+                        <div class="divider"></div>
+
                         <!-- Google Calendar -->
-                        <a href="<?php echo htmlspecialchars($googleCalendarUrl); ?>" target="_blank"
-                            class="calendar-btn">
+                        <div class="calendar-btn" onclick="showGoogleInstructions()">
                             <div class="calendar-btn-icon google">
                                 <svg viewBox="0 0 24 24" width="32" height="32">
                                     <path fill="#4285F4"
@@ -269,13 +317,13 @@ $outlookWebUrl = 'https://outlook.live.com/calendar/0/addfromweb?url=' . urlenco
                             </div>
                             <div class="calendar-btn-content">
                                 <div class="calendar-btn-title">Google Calendar</div>
-                                <div class="calendar-btn-desc">Agregar todos los eventos a Google Calendar</div>
+                                <div class="calendar-btn-desc">Ver instrucciones para agregar</div>
                             </div>
                             <span class="material-icons arrow">arrow_forward</span>
-                        </a>
+                        </div>
 
                         <!-- Outlook -->
-                        <a href="<?php echo htmlspecialchars($outlookWebUrl); ?>" target="_blank" class="calendar-btn">
+                        <a href="<?php echo htmlspecialchars($webcalUrl); ?>" class="calendar-btn">
                             <div class="calendar-btn-icon outlook">
                                 <svg viewBox="0 0 24 24" width="32" height="32">
                                     <path fill="#0078D4"
@@ -287,22 +335,8 @@ $outlookWebUrl = 'https://outlook.live.com/calendar/0/addfromweb?url=' . urlenco
                                 </svg>
                             </div>
                             <div class="calendar-btn-content">
-                                <div class="calendar-btn-title">Microsoft Outlook</div>
-                                <div class="calendar-btn-desc">Agregar a Outlook.com / Office 365</div>
-                            </div>
-                            <span class="material-icons arrow">arrow_forward</span>
-                        </a>
-
-                        <div class="divider"></div>
-
-                        <!-- Descargar ICS -->
-                        <a href="<?php echo htmlspecialchars($downloadUrl); ?>" download class="calendar-btn">
-                            <div class="calendar-btn-icon download">
-                                <span class="material-icons">download</span>
-                            </div>
-                            <div class="calendar-btn-content">
-                                <div class="calendar-btn-title">Descargar archivo .ICS</div>
-                                <div class="calendar-btn-desc">Compatible con cualquier aplicación de calendario</div>
+                                <div class="calendar-btn-title">Outlook / Apple Calendar</div>
+                                <div class="calendar-btn-desc">Suscribirse al calendario (webcal://)</div>
                             </div>
                             <span class="material-icons arrow">arrow_forward</span>
                         </a>
@@ -320,6 +354,49 @@ $outlookWebUrl = 'https://outlook.live.com/calendar/0/addfromweb?url=' . urlenco
             <p>&copy; 2026 <a href="#">Dataeficiencia</a>. Calendario informativo.</p>
         </footer>
     </div>
+
+    <script>
+        const icsUrl = <?php echo json_encode($icsUrl); ?>;
+
+        function showGoogleInstructions() {
+            Swal.fire({
+                title: 'Agregar a Google Calendar',
+                html: `
+                    <div style="text-align: left; font-size: 13px;">
+                        <p style="margin-bottom: 12px;">Siga estos pasos para agregar el calendario:</p>
+                        <ol style="padding-left: 20px; line-height: 1.8;">
+                            <li>Abra <a href="https://calendar.google.com" target="_blank" style="color: #0ea5e9;">calendar.google.com</a></li>
+                            <li>En el panel izquierdo, busque "Otros calendarios"</li>
+                            <li>Haga clic en el <strong>+</strong> y seleccione <strong>"Desde URL"</strong></li>
+                            <li>Pegue esta URL:</li>
+                        </ol>
+                        <div style="background: #f1f5f9; border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 11px; word-break: break-all; color: #64748b;">
+                            ${icsUrl}
+                        </div>
+                        <button onclick="copyUrl()" style="background: #0ea5e9; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; font-size: 12px;">
+                            <span style="margin-right: 4px;">📋</span> Copiar URL
+                        </button>
+                    </div>
+                `,
+                showConfirmButton: true,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#0ea5e9',
+                width: 500
+            });
+        }
+
+        function copyUrl() {
+            navigator.clipboard.writeText(icsUrl).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡URL Copiada!',
+                    text: 'Ahora puede pegarla en Google Calendar',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            });
+        }
+    </script>
 </body>
 
 </html>
