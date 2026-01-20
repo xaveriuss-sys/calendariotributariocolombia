@@ -42,7 +42,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         try {
             $companyId = $companyModel->create($user['id'], $data);
-            // TODO: Generar calendario inicial aquí
+
+            // Auto-generar calendario
+            require_once dirname(__DIR__) . '/src/Services/CalendarEngine.php';
+            $engine = new \App\Services\CalendarEngine($pdo);
+
+            // Pasamos $data combinado con el ID para cumplir firma esperada si cambia
+            // Por ahora generateEvents usa "settings" y datos planos
+            // Reconstruimos un array con todo lo necesario
+            $fullData = $data;
+            $fullData['settings'] = $settings; // Ensure settings is nested as expected by Engine logic if needed
+            // Corrección: El engine espera 'nit', 'city' en el primer nivel y 'ingresos' dentro de 'settings'
+            // $data ya tiene 'nit', 'city'. 'settings' (json decoded) tiene 'ingresos'.
+
+            // En create_company: $data['settings'] es el array de settings.
+            // En CalendarEngine: $settings['settings']['ingresos']
+
+            $engine->generateEvents($companyId, $data);
+
             header("Location: dashboard.php");
             exit;
         } catch (Exception $e) {
