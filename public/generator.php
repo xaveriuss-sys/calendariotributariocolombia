@@ -348,6 +348,10 @@ $ics .= "END:VCALENDAR\r\n";
 // Guardar archivo físico
 $icsFilename = saveICSFile($ics, $nit);
 
+// PERMISOS EXPLÍCITOS PARA EVITAR BLOQUEOS
+// 0644: Lectura pública, Escritura solo dueño
+chmod(__DIR__ . '/calendarios/' . $icsFilename, 0644);
+
 // Generar URL pública absoluta
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
 if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
@@ -359,14 +363,16 @@ $host = $_SERVER['HTTP_HOST'];
 $basePath = dirname($_SERVER['REQUEST_URI']);
 // Limpieza de basePath para evitar dobles slashes o rutas relativas extrañas de PHP self
 $baseUrl = $protocol . '://' . $host . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-$icsUrl = $baseUrl . '/calendarios/' . $icsFilename;
+
+// Agregamos timestamp para evitar cache de Google (Cache Busting)
+$icsUrl = $baseUrl . '/calendarios/' . $icsFilename . '?v=' . time();
 
 // Guardar en sesión
 session_start();
 $_SESSION['calendar_result'] = [
     'nit' => $nit,
     'eventos_count' => count($eventos),
-    'ics_url' => $icsUrl, // URL ESTÁTICA PÚBLICA DIRECTA
+    'ics_url' => $icsUrl, // URL con versión para Google
     'ics_filename' => $icsFilename,
     'ciudad' => $ciudad
 ];
