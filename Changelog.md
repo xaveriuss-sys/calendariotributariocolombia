@@ -1,4 +1,22 @@
-# Changelog - Calendario Tributario 2026
+# Changelog
+
+## [1.1.0] - 2026-01-20
+### Agregado
+- **Arquitectura de Archivos Estáticos:** Los calendarios ahora se guardan físicamente en `public/calendarios/empresa_{NIT}_{AÑO}.ics` para mejorar la compatibilidad y permitir caché.
+- **Soporte Google Calendar:** Nueva integración mediante URL pública directa y botón "Suscribirse" compatible.
+- **Envío por Correo:** Nueva funcionalidad (`send_email.php`) para enviar el calendario generado al email del usuario.
+- **Configuración de Bots:** Archivo `.htaccess` específico para permitir el indexado correcto por parte de los bots de Google Calendar.
+- **Cache Busting:** Implementación de timestamps en URLs para forzar la actualización de calendarios en clientes externos.
+
+### Seguridad
+- **Eliminado:** Se eliminó el script `reset.php` del repositorio y servidor tras su uso en producción.
+- **Permisos:** Se endurecieron los permisos de generación de archivos a `0644` explícito.
+
+### Corregido
+- Solucionado error 500 en `generator.php` debido a bloques de código incompletos.
+- Corregida la validación de URLs en `result.php`.
+
+ - Calendario Tributario 2026
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 

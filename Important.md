@@ -48,11 +48,28 @@ El formato del archivo ICS debe mantener:
 3. El sistema redirigirá automáticamente a `install.php`
 4. Completar el wizard de 3 pasos
 
-### Permisos
+### Permisos (Actualizado Enero 2026)
+Es crítico asegurar los siguientes permisos para la nueva arquitectura de archivos estáticos:
+
 ```bash
-chmod 755 storage/
-chmod 644 storage/config.json  # Después de instalación
+# Carpeta de almacenamiento interno (Base de datos)
+chmod -R 777 storage/
+
+# Carpeta de archivos públicos (Calendarios generados)
+# Debe tener permisos de escritura para el usuario del servidor (www-data/ploi)
+mkdir -p public/calendarios
+chmod -R 775 public/calendarios
+chown -R ploi:ploi public/calendarios
+
+# El sistema fuerza chmod 644 a los archivos .ics individuales al crearlos.
 ```
+
+### Configuración de Servidor (Nginx / Apache)
+Se ha incluido un archivo `.htaccess` en `public/calendarios/` para:
+1. Forzar MIME type `text/calendar`.
+2. Permitir acceso explícito a `Googlebot` y `Google-Calendar-Importer`.
+**Si usas Nginx puro (sin lectura de .htaccess)**, debes configurar los headers equivalentes en el bloque `location`.
+
 
 ---
 
