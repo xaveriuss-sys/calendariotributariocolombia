@@ -13,17 +13,17 @@
     --header-text-active: #ffffff;
     --bg-main: #f1f5f9;
     --bg-card: #ffffff;
-    
+
     /* Colores de Texto */
     --text-primary: #1e293b;
     --text-secondary: #64748b;
     --text-muted: #94a3b8;
-    
+
     /* Colores de Acento */
     --accent-primary: #0ea5e9;
     --accent-hover: #0284c7;
     --accent-light: #e0f2fe;
-    
+
     /* Colores Semánticos */
     --success: #22c55e;
     --success-light: #dcfce7;
@@ -31,18 +31,18 @@
     --warning-light: #fef3c7;
     --danger: #ef4444;
     --danger-light: #fee2e2;
-    
+
     /* Bordes */
     --border-color: #e2e8f0;
-    
+
     /* Sombras */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 2px 4px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.3);
-    
+
     /* Transiciones */
     --transition: 150ms ease;
-    
+
     /* Bordes Redondeados */
     --radius-sm: 2px;
     --radius-md: 4px;
@@ -51,7 +51,9 @@
 /* ========================================
    RESET Y BASE
    ======================================== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -90,6 +92,9 @@ body {
     margin: 0 auto;
 }
 
+/* ========================================
+   HEADER
+   ======================================== */
 /* ========================================
    HEADER
    ======================================== */
@@ -135,6 +140,19 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    /* Push to right if needed, though flex space-between handles it */
+}
+
+/* Adjust header-info to not be the only right element if actions exist */
+.header-info {
+    margin-right: 20px;
 }
 
 .header-info .material-icons {
@@ -240,7 +258,7 @@ body {
     display: none;
 }
 
-.form-input.error + .error-message {
+.form-input.error+.error-message {
     display: block;
 }
 
@@ -297,8 +315,15 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ========================================
@@ -425,8 +450,13 @@ body {
 }
 
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* ========================================
@@ -436,23 +466,23 @@ body {
     .main-content {
         padding: 16px 12px;
     }
-    
+
     .card-body {
         padding: 16px;
     }
-    
+
     .header-brand span {
         display: none;
     }
-    
+
     .input-group {
         flex-direction: column;
     }
-    
+
     .input-group .form-input:last-child {
         width: 100%;
     }
-    
+
     .input-separator {
         display: none;
     }

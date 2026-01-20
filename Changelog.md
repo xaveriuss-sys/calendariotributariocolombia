@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.0] - 2026-01-20
+### Agregado
+- Implementación de arquitectura SaaS (Multi-empresa).
+- Base de datos persistente: Tablas `users`, `companies`, `calendar_events`.
+- Sistema de Autenticación: Registro, Login, Logout, Dashboard.
+- Script de migración `migrate_saas.php`.
+- Modelo de datos para Empresas y Eventos de Calendario.
+- Acceso a SaaS desde la página principal.
+
 ## [1.1.0] - 2026-01-20
 ### Agregado
 - **Arquitectura de Archivos Estáticos:** Los calendarios ahora se guardan físicamente en `public/calendarios/empresa_{NIT}_{AÑO}.ics` para mejorar la compatibilidad y permitir caché.

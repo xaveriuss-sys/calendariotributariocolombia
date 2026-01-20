@@ -41,9 +41,11 @@ if (!isInstalled()) {
                 <span class="material-icons" style="color: #0ea5e9;">event_available</span>
                 <h1>Calendario Tributario <span>by Dataeficiencia</span></h1>
             </div>
-            <div class="header-info">
-                <span class="material-icons">calendar_month</span>
-                Año Fiscal 2026
+
+            <div class="header-actions">
+                <a href="login.php" class="btn"
+                    style="color: var(--header-text); text-decoration: none; font-size: 13px;">Iniciar Sesión</a>
+                <a href="register.php" class="btn btn-primary btn-sm" style="padding: 6px 12px;">Crear Cuenta</a>
             </div>
         </header>
 
@@ -136,7 +138,7 @@ if (!isInstalled()) {
 
                             <!-- Acción oculta -->
                             <input type="hidden" name="action" id="actionInput" value="google">
-                            
+
                             <!-- Botón Submit -->
                             <div class="form-group" style="margin-top: 24px;">
                                 <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitBtn">

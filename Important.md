@@ -57,6 +57,8 @@ chmod -R 777 storage/
 
 # Carpeta de archivos públicos (Calendarios generados)
 # Debe tener permisos de escritura para el usuario del servidor (www-data/ploi)
+# Carpeta de archivos públicos (Calendarios generados)
+# Debe tener permisos de escritura para el usuario del servidor (www-data/ploi)
 mkdir -p public/calendarios
 chmod -R 775 public/calendarios
 chown -R ploi:ploi public/calendarios
@@ -69,6 +71,12 @@ Se ha incluido un archivo `.htaccess` en `public/calendarios/` para:
 1. Forzar MIME type `text/calendar`.
 2. Permitir acceso explícito a `Googlebot` y `Google-Calendar-Importer`.
 **Si usas Nginx puro (sin lectura de .htaccess)**, debes configurar los headers equivalentes en el bloque `location`.
+
+### Migración SaaS (Nuevo v0.2.0)
+Para activar la funcionalidad SaaS:
+1. Asegurarse de que `storage/config.json` tenga las credenciales correctas.
+2. Acceder a `https://[dominio]/migrate_saas.php`.
+3. Verificar que las tablas `users`, `companies` y `calendar_events` se hayan creado.
 
 
 ---
