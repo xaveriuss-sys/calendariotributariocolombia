@@ -1,0 +1,25 @@
+# Forzar tipo de contenido para .ics
+<FilesMatch "\.(ics)$">
+    Header set Content-Type "text/calendar; charset=utf-8"
+</FilesMatch>
+
+# Permitir acceso a Googlebot y Google-Calendar-Import
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Si quisieras bloquear hotlinking, aquí agregarías las reglas, 
+    # pero EXCLUYENDO a Google.
+    # Ejemplo de whitelist para bots de calendario:
+    
+    RewriteCond %{HTTP_USER_AGENT} Google-Calendar-Importer [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} Googlebot [NC]
+    RewriteRule .* - [L]
+    
+    # Asegurar que no se bloquee el acceso directo
+</IfModule>
+
+# Deshabilitar cache de servidor para estar seguros (opcional)
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/calendar "access plus 0 seconds"
+</IfModule>
