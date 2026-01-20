@@ -103,16 +103,247 @@ function saveICSFile($ics, $nit)
 }
 
 // ============================================
-// LOGICA PRINCIPAL
+// VALIDACIÓN DE INPUT
 // ============================================
 
-// ... (Validaciones anteriores) ...
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: index.php');
+    exit;
+}
 
-// NOTA: Se ha eliminado cleanOldICSFiles() porque ahora son archivos persistentes
+$nit = preg_replace('/[^0-9]/', '', $_POST['nit'] ?? '');
+$nit_dv = preg_replace('/[^0-9]/', '', $_POST['nit_dv'] ?? '');
+$ciudad = trim($_POST['ciudad'] ?? '');
+$ingresos = floatval(preg_replace('/[^0-9]/', '', $_POST['ingresos'] ?? 0));
+$ica_cargo = floatval(preg_replace('/[^0-9]/', '', $_POST['ica_cargo'] ?? 0));
+$action = $_POST['action'] ?? 'download'; // download, google, outlook
 
-// ... (Generación de eventos) ...
+if (!validarNIT($nit, $nit_dv)) {
+    die('Error: NIT inválido. <a href="index.php">Volver</a>');
+}
 
-// ... (Generación de contenido ICS) ...
+$ciudadesValidas = ['Bogotá', 'Medellín', 'Cali', 'Otra'];
+if (!in_array($ciudad, $ciudadesValidas)) {
+    die('Error: Ciudad no válida. <a href="index.php">Volver</a>');
+}
+
+$ultimoDigito = getUltimoDigitoNIT($nit);
+$grupoDigitos = getDigitGroup($ultimoDigito);
+
+$umbalIVA = uvtToPesos(UVT_TOPE_IVA);
+$umbralICABog = uvtToPesos(UVT_TOPE_ICA_BOG);
+
+$ivaPeriodicidad = ($ingresos > $umbalIVA) ? 'bimestral' : 'cuatrimestral';
+$ivaCodigo = ($ivaPeriodicidad === 'bimestral') ? 'IVA_BIM' : 'IVA_CUAT';
+
+$icaBogotaCodigo = null;
+if ($ciudad === 'Bogotá') {
+    $icaBogotaCodigo = ($ica_cargo > $umbralICABog) ? 'ICA_BOG_BIM' : 'ICA_BOG_ANUAL';
+}
+
+// ============================================
+// CONSULTAR BASE DE DATOS
+// ============================================
+
+try {
+    $pdo = getConnection();
+
+    if (!$pdo) {
+        die('Error: No se pudo conectar a la base de datos. <a href="install.php">Reinstalar</a>');
+    }
+
+    $eventos = [];
+    $eventosData = []; // Para Google/Outlook URLs
+
+    // 1. RENTA PERSONAS JURÍDICAS
+    $sql = "SELECT d.fecha_vencimiento, d.descripcion, d.periodo, r.impuesto_nombre
+            FROM tax_deadlines_2026 d
+            JOIN tax_rules r ON d.rule_id = r.id
+            WHERE r.impuesto_codigo = 'RENTA_PJ'
+            AND d.ultimo_digito_nit = :digito
+            AND r.activo = 1
+            ORDER BY d.fecha_vencimiento";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['digito' => $ultimoDigito]);
+    $fechasRenta = $stmt->fetchAll();
+
+    foreach ($fechasRenta as $row) {
+        $summary = "📋 " . $row['impuesto_nombre'] . " - " . $row['periodo'];
+        $desc = $row['descripcion'] . "\\nNIT: {$nit}-{$nit_dv}\\nÚltimo dígito: {$ultimoDigito}\\n\\nRecuerde verificar con su contador.";
+        $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'DIAN - Renta');
+        $eventosData[] = [
+            'summary' => $row['impuesto_nombre'] . " - " . $row['periodo'],
+            'date' => $row['fecha_vencimiento'],
+            'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+        ];
+    }
+
+    // 2. IVA
+    $sql = "SELECT d.fecha_vencimiento, d.descripcion, d.periodo, r.impuesto_nombre
+            FROM tax_deadlines_2026 d
+            JOIN tax_rules r ON d.rule_id = r.id
+            WHERE r.impuesto_codigo = :codigo
+            AND d.ultimo_digito_nit = :grupo
+            AND r.activo = 1
+            ORDER BY d.fecha_vencimiento";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['codigo' => $ivaCodigo, 'grupo' => $grupoDigitos]);
+    $fechasIVA = $stmt->fetchAll();
+
+    foreach ($fechasIVA as $row) {
+        $periodicidadLabel = ($ivaPeriodicidad === 'bimestral') ? 'Bimestral' : 'Cuatrimestral';
+        $summary = "💰 IVA {$periodicidadLabel} - " . $row['periodo'];
+        $desc = $row['descripcion'] . "\\nPeriodicidad: {$periodicidadLabel}\\nNIT: {$nit}-{$nit_dv}\\n\\nRecuerde verificar con su contador.";
+        $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'DIAN - IVA');
+        $eventosData[] = [
+            'summary' => "IVA {$periodicidadLabel} - " . $row['periodo'],
+            'date' => $row['fecha_vencimiento'],
+            'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+        ];
+    }
+
+    // 3. RETENCIÓN EN LA FUENTE
+    $sql = "SELECT d.fecha_vencimiento, d.descripcion, d.periodo, r.impuesto_nombre
+            FROM tax_deadlines_2026 d
+            JOIN tax_rules r ON d.rule_id = r.id
+            WHERE r.impuesto_codigo = 'RETEFUENTE'
+            AND d.ultimo_digito_nit = :grupo
+            AND r.activo = 1
+            ORDER BY d.fecha_vencimiento";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['grupo' => $grupoDigitos]);
+    $fechasRetencion = $stmt->fetchAll();
+
+    foreach ($fechasRetencion as $row) {
+        $summary = "🏦 Retención Fuente - " . $row['periodo'];
+        $desc = $row['descripcion'] . "\\nNIT: {$nit}-{$nit_dv}\\n\\nRecuerde verificar con su contador.";
+        $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'DIAN - Retención');
+        $eventosData[] = [
+            'summary' => "Retención Fuente - " . $row['periodo'],
+            'date' => $row['fecha_vencimiento'],
+            'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+        ];
+    }
+
+    // 4. ICA MUNICIPAL
+    if ($ciudad === 'Bogotá' && $icaBogotaCodigo) {
+        $sql = "SELECT d.fecha_vencimiento, d.descripcion, d.periodo, r.impuesto_nombre
+                FROM tax_deadlines_2026 d
+                JOIN tax_rules r ON d.rule_id = r.id
+                WHERE r.impuesto_codigo = :codigo
+                AND d.ultimo_digito_nit = '*'
+                AND r.activo = 1
+                ORDER BY d.fecha_vencimiento";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['codigo' => $icaBogotaCodigo]);
+        $fechasICABog = $stmt->fetchAll();
+
+        $icaLabel = ($icaBogotaCodigo === 'ICA_BOG_BIM') ? 'Bimestral' : 'Anual';
+        foreach ($fechasICABog as $row) {
+            $summary = "🏛️ ICA Bogotá {$icaLabel} - " . $row['periodo'];
+            $desc = $row['descripcion'] . "\\nRégimen: {$icaLabel}\\nNIT: {$nit}-{$nit_dv}\\n\\nRecuerde verificar con su contador.";
+            $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'ICA - Bogotá');
+            $eventosData[] = [
+                'summary' => "ICA Bogotá {$icaLabel} - " . $row['periodo'],
+                'date' => $row['fecha_vencimiento'],
+                'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+            ];
+        }
+
+    } elseif ($ciudad === 'Medellín') {
+        $sql = "SELECT d.fecha_vencimiento, d.descripcion, d.periodo, r.impuesto_nombre
+                FROM tax_deadlines_2026 d
+                JOIN tax_rules r ON d.rule_id = r.id
+                WHERE r.impuesto_codigo = 'ICA_MED'
+                AND r.activo = 1
+                ORDER BY d.fecha_vencimiento";
+
+        $stmt = $pdo->query($sql);
+        $fechasICAMed = $stmt->fetchAll();
+
+        foreach ($fechasICAMed as $row) {
+            $summary = "🏛️ ICA Medellín - " . $row['periodo'];
+            $desc = $row['descripcion'] . "\\nNIT: {$nit}-{$nit_dv}\\n\\nRecuerde verificar con su contador.";
+            $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'ICA - Medellín');
+            $eventosData[] = [
+                'summary' => "ICA Medellín - " . $row['periodo'],
+                'date' => $row['fecha_vencimiento'],
+                'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+            ];
+        }
+
+    } elseif ($ciudad === 'Cali') {
+        $sql = "SELECT d.fecha_vencimiento, d.descripcion, d.periodo, r.impuesto_nombre
+                FROM tax_deadlines_2026 d
+                JOIN tax_rules r ON d.rule_id = r.id
+                WHERE r.impuesto_codigo = 'ICA_CALI'
+                AND r.activo = 1
+                ORDER BY d.fecha_vencimiento";
+
+        $stmt = $pdo->query($sql);
+        $fechasICACali = $stmt->fetchAll();
+
+        foreach ($fechasICACali as $row) {
+            $summary = "🏛️ ICA Cali - " . $row['periodo'];
+            $desc = $row['descripcion'] . "\\nNIT: {$nit}-{$nit_dv}\\n\\nRecuerde verificar con su contador.";
+            $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'ICA - Cali');
+            $eventosData[] = [
+                'summary' => "ICA Cali - " . $row['periodo'],
+                'date' => $row['fecha_vencimiento'],
+                'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+            ];
+        }
+    }
+
+    // 5. OBLIGACIONES LABORALES
+    $sql = "SELECT d.fecha_vencimiento, d.descripcion, d.periodo, r.impuesto_nombre
+            FROM tax_deadlines_2026 d
+            JOIN tax_rules r ON d.rule_id = r.id
+            WHERE r.impuesto_codigo LIKE 'LAB_%'
+            AND r.activo = 1
+            ORDER BY d.fecha_vencimiento";
+
+    $stmt = $pdo->query($sql);
+    $fechasLaborales = $stmt->fetchAll();
+
+    foreach ($fechasLaborales as $row) {
+        $summary = "👥 " . $row['impuesto_nombre'];
+        $desc = $row['descripcion'] . "\\nEmpresa: {$nit}-{$nit_dv}\\n\\nObligación laboral importante.";
+        $eventos[] = createEvent($summary, $row['fecha_vencimiento'], $desc, 'Laboral');
+        $eventosData[] = [
+            'summary' => $row['impuesto_nombre'],
+            'date' => $row['fecha_vencimiento'],
+            'description' => $row['descripcion'] . " - NIT: {$nit}-{$nit_dv}"
+        ];
+    }
+
+} catch (PDOException $e) {
+    die('Error de base de datos: ' . $e->getMessage() . ' <a href="index.php">Volver</a>');
+}
+
+// ============================================
+// GENERAR ARCHIVO ICS
+// ============================================
+
+$nombreArchivo = "calendario_tributario_{$nit}_2026.ics";
+
+$ics = "BEGIN:VCALENDAR\r\n";
+$ics .= "VERSION:2.0\r\n";
+$ics .= "PRODID:-//Dataeficiencia//CalendarioTributario2026//ES\r\n";
+$ics .= "CALSCALE:GREGORIAN\r\n";
+$ics .= "METHOD:PUBLISH\r\n";
+$ics .= "X-WR-CALNAME:Calendario Tributario 2026 - {$nit}\r\n";
+$ics .= "X-WR-TIMEZONE:America/Bogota\r\n";
+
+foreach ($eventos as $evento) {
+    $ics .= $evento;
+}
+
+$ics .= "END:VCALENDAR\r\n";
 
 // Guardar archivo físico
 $icsFilename = saveICSFile($ics, $nit);
